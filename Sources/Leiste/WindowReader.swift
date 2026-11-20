@@ -67,7 +67,13 @@ extension BarModel {
 		for pid in Watch.pids {
 			let ax = AXUIElementCreateApplication(pid)
 			AXUIElementSetMessagingTimeout(ax, 0.1)
-			for el in Self.axWindows(of: ax) where (Self.attribute(el, kAXMinimizedAttribute) as? Bool) == true {
+			guard let windows = Self.answeredWindows(of: ax) else {
+				// Busy: its minimised windows stay as they were.
+				for (id, m) in minimised where m.pid == pid { found[id] = m }
+				noteNoAnswer(pid, "minimised windows")
+				continue
+			}
+			for el in windows where (Self.attribute(el, kAXMinimizedAttribute) as? Bool) == true {
 				var wid: CGWindowID = 0
 				guard _AXUIElementGetWindow(el, &wid) == .success else { continue }
 				found[wid] = (pid, el, Self.attribute(el, kAXTitleAttribute) as? String ?? "")
@@ -133,17 +139,18 @@ extension BarModel {
 		if trusted {
 			var byApp: [pid_t: [CGWindowID]] = [:]
 			for (id, pid) in found { byApp[pid, default: []].append(id) }
+			var unanswered: Set<pid_t> = []
 			for (pid, ids) in byApp {
 				let remembered = known[pid] ?? [:]
 				let skip = (notWindows[pid] ?? [:]).filter { Date().timeIntervalSince($0.value) < 3 }
 				// Asked again only if it announced a change or shows a window we haven't met.
 				let unknown = ids.contains(where: { remembered[$0] == nil && skip[$0] == nil })
-				if changedApps.contains(pid) || unknown {
+				let app = AXUIElementCreateApplication(pid)
+				AXUIElementSetMessagingTimeout(app, 0.25)	// so a stuck app can't stall the bar
+				if changedApps.contains(pid) || unknown, let listed = Self.answeredWindows(of: app) {
 					var mine: [CGWindowID: (element: AXUIElement, title: String)] = [:]
 					var others: [CGWindowID: Date] = skip
-					let app = AXUIElementCreateApplication(pid)
-					AXUIElementSetMessagingTimeout(app, 0.25)	// so a stuck app can't stall the bar
-					for el in Self.axWindows(of: app) {
+					for el in listed {
 						var wid: CGWindowID = 0
 						guard _AXUIElementGetWindow(el, &wid) == .success else { continue }
 						let subrole = Self.attribute(el, kAXSubroleAttribute) as? String
@@ -164,12 +171,16 @@ extension BarModel {
 					notWindows[pid] = others
 					// A window just met but not listed yet: look again shortly, when it usually is.
 					if unknown && unlisted { lookAgainForNewWindows(pid) }
+				} else if changedApps.contains(pid) || unknown {
+					// Busy: keep what we knew and ask again on the next look.
+					unanswered.insert(pid)
+					noteNoAnswer(pid, "windows")
 				}
 				for id in ids {
 					if let w = known[pid]?[id] { elements[id] = w.element; titles[id] = w.title }
 				}
 			}
-			changedApps = []
+			changedApps = unanswered
 			// Without a matching accessibility window it isn't one you'd want on the bar.
 			found = found.filter { elements[$0.key] != nil }
 		}

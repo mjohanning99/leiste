@@ -26,6 +26,27 @@ extension BarModel {
 	}
 
 	static func axWindows(of app: AXUIElement) -> [AXUIElement] {
-		attribute(app, kAXWindowsAttribute) as? [AXUIElement] ?? []
+		answeredWindows(of: app) ?? []
+	}
+
+	/// An app's windows, or nil if it didn't answer (busy past the time limit).
+	/// Not answering isn't having no windows: a busy app (Path Finder loading a
+	/// folder) would otherwise lose its buttons until the next look.
+	static func answeredWindows(of app: AXUIElement) -> [AXUIElement]? {
+		var value: AnyObject?
+		switch AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &value) {
+		case .success: return value as? [AXUIElement] ?? []
+		case .noValue, .attributeUnsupported: return []
+		default: return nil
+		}
+	}
+
+	private static var stallLogged: [pid_t: Date] = [:]
+
+	/// Notes in the log that an app didn't answer, at most once a minute per app.
+	func noteNoAnswer(_ pid: pid_t, _ what: String) {
+		if let last = Self.stallLogged[pid], Date().timeIntervalSince(last) < 60 { return }
+		Self.stallLogged[pid] = Date()
+		Log.write("\(info(pid).bundleID ?? "pid \(pid)") didn't answer in time (\(what)): kept its buttons")
 	}
 }

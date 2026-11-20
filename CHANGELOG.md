@@ -9,6 +9,7 @@ What changed in each version of Leiste, newest first.
 - **Smoother with window tilers that animate:** Leiste waits until a window has stopped gliding before fitting it above the bar, instead of tugging at it mid-way.
 - **Fixed:** after switching back to a desktop where every window was minimised into Leiste, one of them could grow back out by itself.
 - **Fixed:** the order you dragged the buttons into was forgotten after switching desktops.
+- **Fixed:** an app busy for a moment (Path Finder loading a folder, say) could lose its buttons until the next look. They now stay while it's busy.
 - A group's button no longer shows a second outline behind it; the grey count says it's a group (the stack look is a choice under Look).
 
 ## 1.0.0 (19 November 2026)

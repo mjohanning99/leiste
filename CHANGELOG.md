@@ -2,7 +2,7 @@
 
 What changed in each version of Leiste, newest first.
 
-## Unreleased
+## 1.1.0 (20 November 2026)
 
 - **Fixed:** a window snapped under the bar twice in a row (with a window tiler) stayed there until you clicked something. It now moves above the bar within a second.
 - **Fixed:** a window that a window tiler centres over the whole screen ended partly under the bar. It's now moved up to end just above it (windows you drag there yourself stay put).

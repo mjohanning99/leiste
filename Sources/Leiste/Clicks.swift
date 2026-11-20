@@ -139,9 +139,18 @@ extension BarModel {
 		let to = max(0, min(g.count, from + steps))
 		guard to != from else { return 0 }
 		g.insert(item, at: to)
-		order = g.flatMap { $0.windows.map(\.id) }
+		// The new order of this desktop's windows goes into the places they had in
+		// the order of all desktops, so the other desktops' orders stay as they were.
+		let mine = g.flatMap { $0.windows.map(\.id) }
+		let ids = Set(mine)
+		let slots = order.indices.filter { ids.contains(order[$0]) }
+		if slots.count == mine.count {
+			for (k, i) in slots.enumerated() { order[i] = mine[k] }
+		} else {
+			order = mine + order.filter { !ids.contains($0) }
+		}
 		let byID = Dictionary(uniqueKeysWithValues: windows.map { ($0.id, $0) })
-		windows = order.compactMap { byID[$0] }
+		windows = mine.compactMap { byID[$0] }
 		return to - from
 	}
 

@@ -67,6 +67,8 @@ final class Prefs: ObservableObject {
 	@Published var runningDots: Bool { didSet { save("running", runningDots ? "on" : "off") } }
 	/// A symbol before each item of the right-click menus.
 	@Published var menuSymbols: Bool { didSet { save("menusymbols", menuSymbols ? "on" : "off") } }
+	/// A group's button shows the edge of a second button behind it.
+	@Published var groupStack: Bool { didSet { save("groupstack", groupStack ? "on" : "off") } }
 	@Published var pointing: PointStyle { didSet { save("pointing", pointing.rawValue) } }
 	@Published var motion: MotionLevel { didSet { save("motion", motion.rawValue) } }
 	@Published var dragStyle: DragStyle { didSet { save("drag", dragStyle.rawValue) } }
@@ -106,6 +108,7 @@ final class Prefs: ObservableObject {
 		desktopStyle = DesktopStyle(rawValue: get("desktops") ?? "") ?? .segmented
 		runningDots = get("running") != "off"
 		menuSymbols = get("menusymbols") != "off"
+		groupStack = get("groupstack") == "on"
 		pointing = PointStyle(rawValue: get("pointing") ?? "") ?? .tint
 		// "on" and "off" are from before there were three levels.
 		motion = MotionLevel(rawValue: get("motion") ?? "") ?? (get("motion") == "off" ? .off : .full)
@@ -154,6 +157,7 @@ final class Prefs: ObservableObject {
 		case "desktops": desktopStyle = DesktopStyle(rawValue: value) ?? desktopStyle
 		case "pointing": pointing = PointStyle(rawValue: value) ?? pointing
 		case "running": runningDots = value == "on"
+		case "groupstack": groupStack = value == "on"
 		default: break
 		}
 	}

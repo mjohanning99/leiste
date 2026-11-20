@@ -284,6 +284,11 @@ final class BarModel: ObservableObject {
 			return
 		}
 		if name == kAXWindowMiniaturizedNotification || name == kAXWindowDeminiaturizedNotification { minimisedChanged = true }
+		// Whether you moved the window yourself (a mouse button held) or an app
+		// did (a window tiler): only the second is moved out from under the bar.
+		if name == kAXWindowMovedNotification || name == kAXWindowResizedNotification, let id = Self.windowID(element) {
+			movedByHand[id] = NSEvent.pressedMouseButtons != 0
+		}
 		// A window starting to go full screen says so at once, before macOS slides
 		// over to its own desktop; stepping aside now means the bar never shows on the way.
 		if !fullScreen, name == kAXWindowResizedNotification || name == kAXWindowMovedNotification || name == kAXFocusedWindowChangedNotification {
@@ -401,11 +406,20 @@ final class BarModel: ObservableObject {
 	// Apps with extra looks already on their way (lookAgainForNewWindows).
 	var lookingAgain: Set<pid_t> = []
 	// When each window was last shortened to fit above the bar.
-	var shortenedAt: [CGWindowID: Date] = [:]
+	var shortenedAt: [CGWindowID: [Date]] = [:]
+	/// Whether each window was last moved with a mouse button held (by you).
+	var movedByHand: [CGWindowID: Bool] = [:]
+	/// A second look for windows to shorten is on its way.
+	var fitAgainSoon = false
 	// The buttons last seen on each desktop, by the window server's number for it.
 	var byDesktop: [UInt64: [BarWindow]] = [:]
 	// Until when a desktop switch is still sliding in.
 	var settlingUntil = Date.distantPast
+	/// When the desktop last changed (see the tucked windows in WindowReader).
+	var switchedAt = Date.distantPast
+	/// Each window's place and since when it has been there, so a window a
+	/// tiler is still gliding into place isn't fitted until it has stopped.
+	var settling: [CGWindowID: (frame: CGRect, since: Date)] = [:]
 	// Until when the bar holds the desktop it switched to ahead of macOS.
 	var holdingUntil = Date.distantPast
 

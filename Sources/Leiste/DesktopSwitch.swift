@@ -47,6 +47,7 @@ extension BarModel {
 		}
 		desktops.current = n
 		settlingUntil = Date().addingTimeInterval(1.6)
+		switchedAt = Date()
 		// Held until macOS has slid over and says so (at most 1.6 seconds): mid-slide,
 		// macOS still reports the old desktop, which would put its buttons back.
 		holdingUntil = Date().addingTimeInterval(1.6)
@@ -59,6 +60,7 @@ extension BarModel {
 	func desktopChanged() {
 		holdingUntil = .distantPast	// macOS has arrived; what it reports is right again
 		settlingUntil = Date().addingTimeInterval(0.9)
+		switchedAt = Date()
 		lookAfresh("switched")
 		for ms in [100, 250, 500, 800, 1500] {
 			DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(ms)) { [weak self] in self?.lookAfresh("\(ms) ms after") }

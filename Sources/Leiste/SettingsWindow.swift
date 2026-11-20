@@ -114,6 +114,7 @@ struct LookTab: View {
 				}
 				.pickerStyle(.segmented)
 				Toggle("Dots under pinned apps that are open", isOn: $prefs.runningDots)
+				Toggle("Groups look like a stack", isOn: $prefs.groupStack)
 				Toggle("Symbols in menus", isOn: $prefs.menuSymbols)
 			}
 		}

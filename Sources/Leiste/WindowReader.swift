@@ -31,10 +31,17 @@ extension BarModel {
 	/// Drops what was remembered about windows that no longer exist.
 	func forgetClosedWindows() {
 		let alive = Set(windows.map(\.id)).union(tucked.keys).union(minimised.keys)
+		// The order spans every desktop: only windows that no longer exist anywhere leave it.
+		if let all = CGWindowListCopyWindowInfo([.optionAll, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] {
+			let existing = Set(all.compactMap { $0[kCGWindowNumber as String] as? CGWindowID })
+			order.removeAll { !existing.contains($0) }
+		}
 		lastFront = lastFront.filter { alive.contains($0.key) }
 		lastSpace = lastSpace.filter { alive.contains($0.key) }
 		homes = homes.filter { alive.contains($0.key) }
 		shortenedAt = shortenedAt.filter { alive.contains($0.key) }
+		movedByHand = movedByHand.filter { alive.contains($0.key) }
+		settling = settling.filter { alive.contains($0.key) }
 		buttonFrames = buttonFrames.filter { alive.contains($0.key) }
 		let pids = Set(NSWorkspace.shared.runningApplications.map(\.processIdentifier))
 		apps = apps.filter { pids.contains($0.key) }
@@ -193,11 +200,15 @@ extension BarModel {
 		activeID = active
 		if let active { lastFront[active] = Date() }
 		// A tucked window that comes forward by other means (⌘Tab) comes back out.
-		if let active, active != previousActive, tucked[active] != nil, NSEvent.pressedMouseButtons == 0 {
+		// Not just after a desktop switch, though: with every window there tucked
+		// away, macOS hands the keyboard to a parked one by itself.
+		if let active, active != previousActive, tucked[active] != nil, NSEvent.pressedMouseButtons == 0,
+		   Date().timeIntervalSince(switchedAt) > 2 {
 			DispatchQueue.main.async { [weak self] in self?.untuck(active) }
 		}
 		previousActive = active
-		order.removeAll { found[$0] == nil }
+		// Windows on other desktops keep their place (closed ones are dropped in
+		// forgetClosedWindows), so an order you dragged survives switching away.
 		for id in found.keys.sorted() where !order.contains(id) { order.append(id) }
 
 		return order.compactMap { id in

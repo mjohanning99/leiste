@@ -2,6 +2,15 @@
 
 What changed in each version of Leiste, newest first.
 
+## Unreleased
+
+- **Fixed:** a window snapped under the bar twice in a row (with a window tiler) stayed there until you clicked something. It now moves above the bar within a second.
+- **Fixed:** a window that a window tiler centres over the whole screen ended partly under the bar. It's now moved up to end just above it (windows you drag there yourself stay put).
+- **Smoother with window tilers that animate:** Leiste waits until a window has stopped gliding before fitting it above the bar, instead of tugging at it mid-way.
+- **Fixed:** after switching back to a desktop where every window was minimised into Leiste, one of them could grow back out by itself.
+- **Fixed:** the order you dragged the buttons into was forgotten after switching desktops.
+- A group's button no longer shows a second outline behind it; the grey count says it's a group (the stack look is a choice under Look).
+
 ## 1.0.0 (19 November 2026)
 
 The first public version. Everything below it was tested privately before it went public.

@@ -12,6 +12,8 @@ struct Display: Equatable, Identifiable {
 	/// The screen's rectangle in AppKit coordinates (for placing windows on it).
 	let frame: CGRect
 	let isMain: Bool
+	/// Where the usable part starts, below the menu bar (accessibility coordinates).
+	let axTop: CGFloat
 	/// How the Spaces settings name this screen.
 	let uuid: String
 
@@ -25,7 +27,7 @@ struct Display: Equatable, Identifiable {
 			let f = s.frame
 			let uuid = CGDisplayCreateUUIDFromDisplayID(id).map { CFUUIDCreateString(nil, $0.takeRetainedValue()) as String } ?? ""
 			return Display(id: id, axFrame: CGRect(x: f.minX, y: h - f.maxY, width: f.width, height: f.height),
-						   frame: f, isMain: i == 0, uuid: uuid)
+						   frame: f, isMain: i == 0, axTop: h - s.visibleFrame.maxY, uuid: uuid)
 		}
 	}
 

@@ -181,9 +181,11 @@ struct WindowButton: View, Equatable {
 					Capsule().fill(Color.accentColor).frame(width: width * 0.4, height: 3).padding(.bottom, 1)
 				}
 			}
-			// A group looks like a small stack: the edge of a second button peeks out behind it.
+			// A group can look like a small stack: the edge of a second button peeks
+			// out behind it (Look → "Groups look like a stack"; off by default, as
+			// the grey count already says it's a group).
 			.background {
-				if isGroup {
+				if isGroup && prefs.groupStack {
 					shape.strokeBorder(.primary.opacity(0.16), lineWidth: 0.5)
 						.background(.primary.opacity(0.04), in: shape)
 						.offset(x: 2.5, y: -2.5)

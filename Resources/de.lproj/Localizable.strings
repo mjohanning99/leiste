@@ -176,3 +176,12 @@
 "Cancel" = "Abbrechen";
 "Symbols in menus" = "Symbole in Menüs";
 "Groups look like a stack" = "Gruppen sehen wie ein Stapel aus";
+"%@ · %lld windows" = "%@ · %lld Fenster";
+"tucked away" = "in Leiste versteckt";
+"Pointing at a window" = "Zeiger auf einem Fenster";
+"A group lists its windows" = "Eine Gruppe zeigt ihre Fenster als Liste";
+"A title that is cut short shows in full" = "Ein gekürzter Titel erscheint ganz";
+"Opens after" = "Öffnet nach";
+"At once" = "Sofort";
+"0.4 seconds" = "0,4 Sekunden";
+"0.8 seconds" = "0,8 Sekunden";

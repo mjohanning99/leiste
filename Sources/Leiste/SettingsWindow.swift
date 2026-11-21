@@ -190,6 +190,18 @@ struct WindowsTab: View {
 				Toggle("Colour windows that ask for you", isOn: $prefs.attention)
 				Toggle("Show which apps are playing sound", isOn: $prefs.sound)
 			}
+			Section("Pointing at a window") {
+				Toggle("A group lists its windows", isOn: $prefs.groupList)
+				Toggle("A title that is cut short shows in full", isOn: $prefs.fullTitle)
+				if prefs.groupList || prefs.fullTitle {
+					Picker("Opens after", selection: $prefs.listDelay) {
+						Text("At once").tag(ListDelay.now)
+						Text("0.4 seconds").tag(ListDelay.short)
+						Text("0.8 seconds").tag(ListDelay.long)
+					}
+					.pickerStyle(.segmented)
+				}
+			}
 			Section("Minimising") {
 				Picker("Minimise into", selection: $prefs.minimiseInto) {
 					Text("The Dock").tag(MinimiseInto.dock)

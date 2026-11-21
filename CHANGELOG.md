@@ -2,6 +2,10 @@
 
 What changed in each version of Leiste, newest first.
 
+## 1.2.0 (21 November 2026)
+
+- **A group's windows when you point at it.** Rest the pointer on a group's button and a glass list of its windows opens above it; click one to go there. A window whose title is cut short shows it in full the same way. Settings → Windows can turn either off and set how soon they open.
+
 ## 1.1.0 (20 November 2026)
 
 - **Fixed:** a window snapped under the bar twice in a row (with a window tiler) stayed there until you clicked something. It now moves above the bar within a second.

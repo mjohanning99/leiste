@@ -38,6 +38,11 @@ enum FrontStyle: String, CaseIterable { case fill, raised, accent, line }
 enum DesktopStyle: String, CaseIterable { case numbers, segmented, dots, pictures }
 /// What happens under the pointer.
 enum PointStyle: String, CaseIterable { case tint, swell }
+/// How long the pointer rests on a button before its list or full title opens.
+enum ListDelay: String, CaseIterable {
+	case now, short, long
+	var seconds: Double { [.now: 0, .short: 0.4, .long: 0.8][self]! }
+}
 /// How tall the bar is.
 enum BarSize: String, CaseIterable {
 	case compact, standard, large
@@ -80,6 +85,11 @@ final class Prefs: ObservableObject {
 	@Published var dropOnDesktop: Bool { didSet { save("droponDesktop", dropOnDesktop ? "on" : "off") } }
 	/// "No windows on this desktop" in an empty bar.
 	@Published var emptyText: Bool { didSet { save("emptytext", emptyText ? "on" : "off") } }
+	/// Pointing at a group lists its windows (HoverList.swift).
+	@Published var groupList: Bool { didSet { save("grouplist", groupList ? "on" : "off") } }
+	/// Pointing at a window whose title is cut short shows it in full.
+	@Published var fullTitle: Bool { didSet { save("fulltitle", fullTitle ? "on" : "off") } }
+	@Published var listDelay: ListDelay { didSet { save("listdelay", listDelay.rawValue) } }
 	@Published var minimiseInto: MinimiseInto { didSet { save("minimise", minimiseInto.rawValue) } }
 	@Published var standIn: StandIn { didSet { save("standin", standIn.rawValue) } }
 	@Published var ghostMotion: GhostMotion { didSet { save("movement", ghostMotion.rawValue) } }
@@ -119,6 +129,9 @@ final class Prefs: ObservableObject {
 		clickFeedback = ClickFeedback(rawValue: get("click") ?? "") ?? .hop
 		dropOnDesktop = get("droponDesktop") != "off"
 		emptyText = get("emptytext") != "off"
+		groupList = get("grouplist") != "off"
+		fullTitle = get("fulltitle") != "off"
+		listDelay = ListDelay(rawValue: get("listdelay") ?? "") ?? .short
 		minimiseInto = MinimiseInto(rawValue: get("minimise") ?? "") ?? .dock
 		standIn = StandIn(rawValue: get("standin") ?? "") ?? .outline
 		ghostMotion = GhostMotion(rawValue: get("movement") ?? "") ?? .lamp
@@ -158,6 +171,9 @@ final class Prefs: ObservableObject {
 		case "pointing": pointing = PointStyle(rawValue: value) ?? pointing
 		case "running": runningDots = value == "on"
 		case "groupstack": groupStack = value == "on"
+		case "grouplist": groupList = value == "on"
+		case "fulltitle": fullTitle = value == "on"
+		case "listdelay": listDelay = ListDelay(rawValue: value) ?? listDelay
 		default: break
 		}
 	}

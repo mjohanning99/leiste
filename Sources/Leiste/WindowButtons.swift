@@ -138,6 +138,7 @@ struct WindowButton: View, Equatable {
 	var body: some View {
 		Button {
 			guard !drag.moved else { return }
+			HoverList.shared.hide()
 			model.click(group)
 		} label: {
 			// A red badge needs a little more room before the title, so it never touches it.
@@ -199,8 +200,12 @@ struct WindowButton: View, Equatable {
 		.onHover { on in
 			hover.on = on
 			if on { model.pointedApp = w.bundleID } else if model.pointedApp == w.bundleID { model.pointedApp = nil }
+			pointed(on)
 		}
-		.help(isGroup ? group.windows.map(\.title).joined(separator: "\n") : w.title)
+		// The system's tooltip, unless the list or the full title says it already.
+		.help(isGroup ? (prefs.groupList ? "" : group.windows.map(\.title).joined(separator: "\n"))
+					  : (prefs.fullTitle ? "" : w.title))
+		.onChange(of: drag.active) { _, on in if on { HoverList.shared.hide() } }
 		// What VoiceOver says: the window, its app and its state.
 		.accessibilityElement(children: .ignore)
 		.accessibilityLabel(spoken)
@@ -212,6 +217,8 @@ struct WindowButton: View, Equatable {
 				Color.clear
 					.onAppear { remember(g.frame(in: .global)) }
 					.onChange(of: g.frame(in: .global)) { _, f in remember(f) }
+					// A window joining a group that stays put needs the place too.
+					.onChange(of: group.windows.map(\.id)) { _, _ in remember(g.frame(in: .global)) }
 			}
 		}
 		.contextMenu { WindowMenu(model: model, group: group) }
@@ -233,6 +240,31 @@ struct WindowButton: View, Equatable {
 		if prefs.sound, playing { parts.append(String(localized: "playing sound")) }
 		if let badge { parts.append(String(localized: "badge \(badge)")) }
 		return parts.joined(separator: ", ")
+	}
+
+	/// The pointer came onto the button or left it: a group's list, or the
+	/// whole title when the button cuts it short (HoverList.swift).
+	private func pointed(_ on: Bool) {
+		let key = "\(displayID) \(group.id)"
+		guard on else { HoverList.shared.leave(key); return }
+		guard !drag.active, let anchor = HoverList.anchor(ofButton: w.id, in: model) else { return }
+		if isGroup {
+			guard prefs.groupList else { return }
+			let ids = group.windows.map(\.id)
+			HoverList.shared.enter(key, anchor: anchor, interactive: true) { [model] in AnyView(GroupList(model: model, ids: ids)) }
+		} else if prefs.fullTitle && titleCut {
+			let title = w.title, app = w.appName
+			HoverList.shared.enter(key, anchor: anchor, interactive: false) { AnyView(FullTitle(title: title, app: app)) }
+		}
+	}
+
+	/// Whether the title is too long for the button, measured as the label lays it out.
+	private var titleCut: Bool {
+		let font = NSFont.systemFont(ofSize: prefs.fontSize, weight: active ? .semibold : .regular)
+		let needed = (w.title as NSString).size(withAttributes: [.font: font]).width
+		let speaker: CGFloat = prefs.sound && playing ? 10 + 7 : 0
+		let room = width - (prefs.shape == .capsule ? 9 : 7) - 10 - (w.icon == nil ? 0 : prefs.windowIcon + (badge == nil ? 7 : 11)) - speaker
+		return needed > room + 0.5
 	}
 
 	private func remember(_ frame: CGRect) {

@@ -33,6 +33,28 @@ import SwiftUI
 	exit(0)
 }
 
+/// `--list-snapshot out.png [--dark]`: draws a group's list (HoverList.swift)
+/// with sample windows, and a single window's full title under it.
+@MainActor func listSnapshot(to path: String, dark: Bool) {
+	Glass.plain = true
+	let model = BarModel(sample: .always)
+	model.windows[1].isMinimised = true
+	model.windows[4].isActive = true
+	let view = VStack(spacing: 0) {
+		GroupList(model: model, ids: [5, 2, 8, 3])
+		FullTitle(title: "Liquid Glass — Apple Developer Documentation and a few more words", app: "Safari")
+	}
+	.padding(10)
+	.background(dark ? Color(white: 0.18) : Color(white: 0.86))
+	.environment(\.colorScheme, dark ? .dark : .light)
+	let renderer = ImageRenderer(content: view)
+	renderer.scale = 2
+	guard let image = renderer.cgImage,
+		  let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) else { exit(1) }
+	try? png.write(to: URL(fileURLWithPath: path))
+	exit(0)
+}
+
 /// `--dump-dock out.txt`: writes every attribute of every Dock item, to find
 /// what the Dock tells accessibility tools. A tool for us, not for every day.
 @MainActor func dumpDock(to path: String) {

@@ -93,6 +93,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 	/// Fades away the bars of screens showing something full screen, and back the others.
 	func stepAside(_ hidden: Set<CGDirectDisplayID>) {
+		if !hidden.isEmpty { HoverList.shared.hide() }
 		for (id, panel) in panels {
 			let hide = hidden.contains(id)
 			guard (panel.alphaValue == 0) != hide else { continue }
@@ -161,6 +162,7 @@ MainActor.assumeIsolated {
 		exit(0)
 	}
 	if let i = args.firstIndex(of: "--ghost-test"), i + 1 < args.count { _ = NSApplication.shared; Prefs.shared.persist = false; Prefs.shared.ghostMotion = .lamp; ghostTest(to: args[i + 1]) }
+	if let i = args.firstIndex(of: "--list-snapshot"), i + 1 < args.count { _ = NSApplication.shared; listSnapshot(to: args[i + 1], dark: args.contains("--dark")) }
 	if let i = args.firstIndex(of: "--dump-dock"), i + 1 < args.count { dumpDock(to: args[i + 1]) }
 	if let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count {
 		_ = NSApplication.shared
